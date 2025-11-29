@@ -27,17 +27,29 @@
         }
 
         header {
-            text-align: center;
-            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
             padding: 20px 0;
             position: relative;
+            gap: 40px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        h1 {
+            font-size: 2em;
+            color: #ffa31a;
+            margin: 0;
+            white-space: nowrap;
         }
 
         .back-btn {
-            position: absolute;
-            left: 0;
-            top: 50%;
-            transform: translateY(-50%);
             background: rgba(255, 163, 26, 0.15);
             backdrop-filter: blur(20px) saturate(180%);
             -webkit-backdrop-filter: blur(20px) saturate(180%);
@@ -60,7 +72,7 @@
         .back-btn:hover {
             background: rgba(255, 163, 26, 0.95);
             color: #292929;
-            transform: translateY(-50%) translateX(-5px);
+            transform: translateX(-5px);
             box-shadow: 0 6px 20px rgba(255, 163, 26, 0.4);
         }
 
@@ -81,8 +93,180 @@
 
         .search-container {
             max-width: 800px;
-            margin: 0 auto 50px;
+            margin: 0 auto 30px;
             position: relative;
+        }
+
+        /* Hero Banner Styles */
+        .hero-banner {
+            position: relative;
+            width: 100%;
+            height: 70vh;
+            min-height: 500px;
+            margin-bottom: 40px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .hero-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+
+        .hero-slide.active {
+            opacity: 1;
+        }
+
+        .hero-backdrop {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center top;
+        }
+
+        .hero-gradient {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60%;
+            background: linear-gradient(to top, #292929 0%, rgba(41, 41, 41, 0.8) 50%, transparent 100%);
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: absolute;
+            bottom: 80px;
+            left: 60px;
+            max-width: 600px;
+            z-index: 2;
+            color: white;
+        }
+
+        .hero-title {
+            font-size: 3.5em;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-shadow: 2px 4px 8px rgba(0, 0, 0, 0.8);
+            line-height: 1.1;
+        }
+
+        .hero-meta {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+        }
+
+        .hero-rating {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(255, 163, 26, 0.9);
+            padding: 5px 15px;
+            border-radius: 20px;
+            color: #292929;
+            font-weight: 600;
+        }
+
+        .hero-year, .hero-type {
+            color: #ffffff;
+            font-weight: 500;
+        }
+
+        .hero-overview {
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            text-shadow: 1px 2px 4px rgba(0, 0, 0, 0.8);
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .hero-play-btn {
+            background: #ffa31a;
+            color: #292929;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+            font-family: 'Gotham', sans-serif;
+        }
+
+        .hero-play-btn:hover {
+            background: #ffb84d;
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(255, 163, 26, 0.5);
+        }
+
+        .hero-info-btn {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            padding: 15px 35px;
+            font-size: 1.1em;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Gotham', sans-serif;
+        }
+
+        .hero-info-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.8);
+        }
+
+        .hero-indicators {
+            position: absolute;
+            bottom: 30px;
+            right: 60px;
+            display: flex;
+            gap: 10px;
+            z-index: 3;
+        }
+
+        .hero-indicator {
+            width: 40px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .hero-indicator.active {
+            background: #ffa31a;
+            width: 60px;
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            color: white;
+            margin-bottom: 20px;
+            margin-left: 5px;
+            font-weight: 600;
         }
 
         .search-box {
@@ -317,8 +501,25 @@
         }
 
         @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 20px;
+            }
+
+            .header-left {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 15px;
+            }
+
             h1 {
-                font-size: 2em;
+                font-size: 1.8em;
+                text-align: center;
+            }
+
+            .search-container {
+                max-width: 100%;
             }
 
             .movie-card {
@@ -340,6 +541,45 @@
 
             .results-grid {
                 gap: 15px;
+            }
+
+            .hero-banner {
+                height: 50vh;
+                min-height: 400px;
+            }
+
+            .hero-content {
+                bottom: 40px;
+                left: 30px;
+                max-width: 80%;
+            }
+
+            .hero-title {
+                font-size: 2em;
+            }
+
+            .hero-overview {
+                font-size: 0.95em;
+                -webkit-line-clamp: 2;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .hero-play-btn, .hero-info-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .hero-indicators {
+                right: 30px;
+                bottom: 20px;
+            }
+
+            .section-title {
+                font-size: 1.4em;
             }
         }
 
@@ -442,22 +682,24 @@
 <body>
     <div class="container">
         <header>
-            <button class="back-btn" id="backBtn" onclick="goBack()">← Back</button>
-            <h1>Deyne Streaming Hub</h1>
-            <p class="tagline">Discover your next favorite movie or show</p>
+            <div class="header-left">
+                <button class="back-btn" id="backBtn" onclick="goBack()">← Back</button>
+                <h1>Deyne Streaming Hub</h1>
+            </div>
+            <div class="search-container">
+                <div class="search-box">
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        placeholder="Search for movies or TV shows..."
+                        autocomplete="off"
+                    >
+                    <button id="searchBtn">Search</button>
+                </div>
+            </div>
         </header>
 
-        <div class="search-container">
-            <div class="search-box">
-                <input 
-                    type="text" 
-                    id="searchInput" 
-                    placeholder="Search for movies or TV shows..."
-                    autocomplete="off"
-                >
-                <button id="searchBtn">Search</button>
-            </div>
-        </div>
+        <div id="heroBanner" class="hero-banner" style="display: none;"></div>
 
         <div id="results"></div>
     </div>
@@ -472,9 +714,13 @@
         const searchBtn = document.getElementById('searchBtn');
         const resultsDiv = document.getElementById('results');
         const backBtn = document.getElementById('backBtn');
+        const heroBanner = document.getElementById('heroBanner');
 
         let showingSearch = false;
         let playerMessageListener = null;
+        let heroSlides = [];
+        let currentHeroIndex = 0;
+        let heroInterval = null;
 
         // Progress tracking functions
         function getProgress(id, type) {
@@ -561,6 +807,7 @@
             showingSearch = false;
             backBtn.classList.remove('visible');
             searchInput.value = '';
+            heroBanner.style.display = 'block';
             loadPopularContent();
         }
 
@@ -574,6 +821,7 @@
 
             showingSearch = true;
             backBtn.classList.add('visible');
+            heroBanner.style.display = 'none';
 
             // Show loading
             resultsDiv.innerHTML = '<div class="loading">Searching...</div>';
@@ -647,7 +895,96 @@
                 `;
             }).join('');
 
-            resultsDiv.innerHTML = `<div class="results-grid">${itemsHTML}</div>`;
+            const sectionTitle = showingSearch ? '<h2 class="section-title">Search Results</h2>' : '<h2 class="section-title">Popular Now</h2>';
+            resultsDiv.innerHTML = `${sectionTitle}<div class="results-grid">${itemsHTML}</div>`;
+        }
+
+        // Hero Banner Functions
+        function createHeroBanner(featuredItems) {
+            if (!featuredItems || featuredItems.length === 0) return;
+            
+            heroSlides = featuredItems.slice(0, 5); // Take top 5 for rotation
+            
+            const slidesHTML = heroSlides.map((item, index) => {
+                const backdropPath = item.backdrop_path 
+                    ? `https://image.tmdb.org/t/p/original${item.backdrop_path}` 
+                    : `https://image.tmdb.org/t/p/original${item.poster_path}`;
+                
+                const title = item.title || item.name;
+                const overview = item.overview || 'No description available.';
+                const date = item.release_date || item.first_air_date;
+                const year = date ? date.split('-')[0] : 'N/A';
+                const rating = item.vote_average ? item.vote_average.toFixed(1) : 'N/A';
+                const mediaType = item.media_type || (item.title ? 'movie' : 'tv');
+                const typeLabel = mediaType === 'movie' ? 'Movie' : 'TV Show';
+                
+                return `
+                    <div class="hero-slide ${index === 0 ? 'active' : ''}" data-index="${index}">
+                        <img src="${backdropPath}" alt="${title}" class="hero-backdrop">
+                        <div class="hero-gradient"></div>
+                        <div class="hero-content">
+                            <h1 class="hero-title">${title}</h1>
+                            <div class="hero-meta">
+                                <span class="hero-rating">⭐ ${rating}</span>
+                                <span class="hero-year">${year}</span>
+                                <span class="hero-type">${typeLabel}</span>
+                            </div>
+                            <p class="hero-overview">${overview}</p>
+                            <div class="hero-buttons">
+                                <button class="hero-play-btn" onclick="selectItem(${item.id}, '${mediaType}')">
+                                    ▶ Play
+                                </button>
+                                <button class="hero-info-btn" onclick="selectItem(${item.id}, '${mediaType}')">
+                                    ⓘ More Info
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            const indicatorsHTML = heroSlides.map((_, index) => 
+                `<div class="hero-indicator ${index === 0 ? 'active' : ''}" onclick="goToHeroSlide(${index})"></div>`
+            ).join('');
+            
+            heroBanner.innerHTML = slidesHTML + `<div class="hero-indicators">${indicatorsHTML}</div>`;
+            heroBanner.style.display = 'block';
+            
+            // Start auto-rotation
+            startHeroRotation();
+        }
+
+        function goToHeroSlide(index) {
+            const slides = document.querySelectorAll('.hero-slide');
+            const indicators = document.querySelectorAll('.hero-indicator');
+            
+            slides.forEach(slide => slide.classList.remove('active'));
+            indicators.forEach(ind => ind.classList.remove('active'));
+            
+            slides[index].classList.add('active');
+            indicators[index].classList.add('active');
+            
+            currentHeroIndex = index;
+            
+            // Reset rotation timer
+            if (heroInterval) {
+                clearInterval(heroInterval);
+                startHeroRotation();
+            }
+        }
+
+        function startHeroRotation() {
+            heroInterval = setInterval(() => {
+                currentHeroIndex = (currentHeroIndex + 1) % heroSlides.length;
+                goToHeroSlide(currentHeroIndex);
+            }, 5000); // Rotate every 5 seconds
+        }
+
+        function stopHeroRotation() {
+            if (heroInterval) {
+                clearInterval(heroInterval);
+                heroInterval = null;
+            }
         }
 
         function selectItem(id, type) {
@@ -791,13 +1128,24 @@
                 const tvData = await tvResponse.json();
                 
                 // Add media_type to each item and combine
-                const movies = moviesData.results.slice(0, 10).map(item => ({...item, media_type: 'movie'}));
-                const tvShows = tvData.results.slice(0, 10).map(item => ({...item, media_type: 'tv'}));
+                const movies = moviesData.results.map(item => ({...item, media_type: 'movie'}));
+                const tvShows = tvData.results.map(item => ({...item, media_type: 'tv'}));
                 
                 // Combine and shuffle for variety
-                const combined = [...movies, ...tvShows].sort(() => Math.random() - 0.5);
+                const allContent = [...movies, ...tvShows];
+                const shuffled = allContent.sort(() => Math.random() - 0.5);
                 
-                displayResults(combined);
+                // Create hero banner with top-rated items
+                const featured = allContent
+                    .filter(item => item.backdrop_path && item.vote_average > 7)
+                    .sort((a, b) => b.vote_average - a.vote_average)
+                    .slice(0, 5);
+                
+                createHeroBanner(featured);
+                
+                // Display remaining as grid
+                const gridContent = shuffled.slice(0, 20);
+                displayResults(gridContent);
             } catch (error) {
                 resultsDiv.innerHTML = `<div class="error">Error loading popular content: ${error.message}</div>`;
             }
@@ -813,6 +1161,7 @@
                 showingSearch = true;
                 backBtn.classList.add('visible');
                 searchInput.value = searchQuery;
+                heroBanner.style.display = 'none';
                 performSearchWithoutHistory(searchQuery);
             } else {
                 // Otherwise load popular content
