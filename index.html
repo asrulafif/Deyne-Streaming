@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deyne Streaming Hub</title>
+    <style>
+        @import url('https://fonts.cdnfonts.com/css/gotham');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Gotham', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #292929;
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px 0;
+        }
+
+        h1 {
+            font-size: 3em;
+            color: #ffa31a;
+            margin-bottom: 10px;
+        }
+
+        .tagline {
+            color: #808080;
+            font-size: 1.1em;
+        }
+
+        .search-container {
+            max-width: 800px;
+            margin: 0 auto 50px;
+            position: relative;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            background: #1a1a1a;
+            padding: 8px;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+            border: 1px solid #808080;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        #searchInput {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 15px 25px;
+            font-size: 1.1em;
+            color: #fff;
+            outline: none;
+        }
+
+        #searchInput::placeholder {
+            color: #808080;
+        }
+
+        #searchBtn {
+            background: #ffa31a;
+            border: none;
+            padding: 15px 35px;
+            border-radius: 50px;
+            color: #292929;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        #searchBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 163, 26, 0.5);
+        }
+
+        #searchBtn:active {
+            transform: translateY(0);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2em;
+            color: #ffa31a;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .movie-card {
+            background: #1a1a1a;
+            border-radius: 15px;
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid #3a3a3a;
+            cursor: pointer;
+        }
+
+        .movie-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(255, 163, 26, 0.3);
+            border-color: #ffa31a;
+        }
+
+        .movie-poster {
+            width: 100%;
+            height: 375px;
+            object-fit: cover;
+            background: #1a1a1a;
+        }
+
+        .movie-info {
+            padding: 20px;
+        }
+
+        .movie-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #fff;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .movie-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .movie-year {
+            color: #808080;
+            font-size: 0.9em;
+        }
+
+        .movie-rating {
+            background: #ffa31a;
+            color: #292929;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: #808080;
+            font-size: 1.2em;
+        }
+
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #ffa31a;
+            background: rgba(255, 163, 26, 0.1);
+            border-radius: 15px;
+            margin: 20px 0;
+            border: 1px solid #ffa31a;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+
+            .results-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 15px;
+            }
+
+            .movie-poster {
+                height: 225px;
+            }
+
+            .movie-info {
+                padding: 15px;
+            }
+
+            .movie-title {
+                font-size: 1em;
+            }
+        }
+
+        /* Player Modal Styles */
+        .player-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .player-container {
+            width: 90%;
+            max-width: 1200px;
+            height: 80vh;
+            position: relative;
+            background: #292929;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 25px 100px rgba(255, 163, 26, 0.3);
+            animation: slideUp 0.4s ease;
+            border: 2px solid #ffa31a;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .player-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 163, 26, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid #ffa31a;
+            color: white;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .close-btn:hover {
+            background: #ffa31a;
+            color: #292929;
+            transform: rotate(90deg);
+        }
+
+        @media (max-width: 768px) {
+            .player-container {
+                width: 95%;
+                height: 70vh;
+            }
+
+            .close-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 20px;
+                top: 10px;
+                right: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Deyne Streaming Hub</h1>
+            <p class="tagline">Discover your next favorite movie</p>
+        </header>
+
+        <div class="search-container">
+            <div class="search-box">
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    placeholder="Search for movies..."
+                    autocomplete="off"
+                >
+                <button id="searchBtn">Search</button>
+            </div>
+        </div>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        // TMDB API Configuration
+        const API_KEY = 'edb6023c87daf70864d39ab30072f3b9';
+        const BASE_URL = 'https://api.themoviedb.org/3';
+        const IMG_BASE_URL = 'https://image.tmdb.org/t/p/w500';
+
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const resultsDiv = document.getElementById('results');
+
+        // Search on button click
+        searchBtn.addEventListener('click', performSearch);
+
+        // Search on Enter key
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+
+        async function performSearch() {
+            const query = searchInput.value.trim();
+            
+            if (!query) {
+                resultsDiv.innerHTML = '<div class="no-results">Please enter a movie name to search</div>';
+                return;
+            }
+
+            // Show loading
+            resultsDiv.innerHTML = '<div class="loading">Searching for movies...</div>';
+
+            try {
+                const response = await fetch(
+                    `${BASE_URL}/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(query)}&language=en-US&page=1&include_adult=false`
+                );
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch movies');
+                }
+
+                const data = await response.json();
+                displayResults(data.results);
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">Error: ${error.message}<br>Please check your API key and try again.</div>`;
+            }
+        }
+
+        function displayResults(movies) {
+            if (!movies || movies.length === 0) {
+                resultsDiv.innerHTML = '<div class="no-results">No movies found. Try a different search term.</div>';
+                return;
+            }
+
+            const moviesHTML = movies.map(movie => {
+                const posterPath = movie.poster_path 
+                    ? `${IMG_BASE_URL}${movie.poster_path}` 
+                    : 'https://via.placeholder.com/250x375/1a1a2e/667eea?text=No+Poster';
+                
+                const year = movie.release_date ? movie.release_date.split('-')[0] : 'N/A';
+                const rating = movie.vote_average ? movie.vote_average.toFixed(1) : 'N/A';
+
+                return `
+                    <div class="movie-card" onclick="selectMovie(${movie.id})">
+                        <img src="${posterPath}" alt="${movie.title}" class="movie-poster">
+                        <div class="movie-info">
+                            <div class="movie-title">${movie.title}</div>
+                            <div class="movie-meta">
+                                <span class="movie-year">${year}</span>
+                                <span class="movie-rating">⭐ ${rating}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            resultsDiv.innerHTML = `<div class="results-grid">${moviesHTML}</div>`;
+        }
+
+        function selectMovie(movieId) {
+            // Open the movie player in a modal
+            openMoviePlayer(movieId);
+        }
+
+        function openMoviePlayer(movieId) {
+            // Create modal
+            const modal = document.createElement('div');
+            modal.className = 'player-modal';
+            modal.innerHTML = `
+                <div class="player-container">
+                    <button class="close-btn" onclick="closePlayer()">✕</button>
+                    <iframe 
+                        src="https://www.vidking.net/embed/movie/${movieId}?color=ffa31a&autoPlay=true&nextEpisode=true&episodeSelector=true"
+                        frameborder="0"
+                        allowfullscreen
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    ></iframe>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            
+            // Prevent body scroll
+            document.body.style.overflow = 'hidden';
+            
+            // Close on background click
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closePlayer();
+                }
+            });
+        }
+
+        function closePlayer() {
+            const modal = document.querySelector('.player-modal');
+            if (modal) {
+                modal.remove();
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        // Close player on ESC key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closePlayer();
+            }
+        });
+
+        // Load popular movies on page load
+        async function loadPopularMovies() {
+            try {
+                const response = await fetch(
+                    `${BASE_URL}/movie/popular?api_key=${API_KEY}&language=en-US&page=1`
+                );
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch popular movies');
+                }
+
+                const data = await response.json();
+                displayResults(data.results);
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">Error loading popular movies: ${error.message}</div>`;
+            }
+        }
+
+        // Load popular movies when page loads
+        loadPopularMovies();
+    </script>
+</body>
+</html>
