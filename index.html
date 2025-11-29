@@ -97,6 +97,10 @@
             position: relative;
         }
 
+        .back-btn.visible {
+            display: flex;
+        }
+
         /* Hero Banner Styles */
         .hero-banner {
             position: relative;
@@ -763,6 +767,9 @@
                         if (playerData.currentTime && playerData.duration) {
                             const progress = Math.round((playerData.currentTime / playerData.duration) * 100);
                             saveProgress(id, type, progress, playerData.currentTime, playerData.duration);
+                            
+                            // Update UI in real-time if on home page
+                            updateCardProgress(id, type, progress);
                         }
                     } catch (e) {
                         // Not JSON data, ignore
@@ -771,6 +778,49 @@
             };
 
             window.addEventListener("message", playerMessageListener);
+        }
+
+        // Update progress on a specific card without reloading all content
+        function updateCardProgress(id, type, progress) {
+            const cards = document.querySelectorAll('.movie-card');
+            cards.forEach(card => {
+                const cardOnclick = card.getAttribute('onclick');
+                if (cardOnclick && cardOnclick.includes(`${id}`) && cardOnclick.includes(`'${type}'`)) {
+                    // Update progress bar
+                    const progressBar = card.querySelector('.progress-bar');
+                    if (progressBar) {
+                        progressBar.style.width = `${progress}%`;
+                    } else if (progress > 0) {
+                        // Add progress bar if it doesn't exist
+                        const progressContainer = document.createElement('div');
+                        progressContainer.className = 'progress-bar-container';
+                        progressContainer.innerHTML = `<div class="progress-bar" style="width: ${progress}%"></div>`;
+                        card.appendChild(progressContainer);
+                    }
+                    
+                    // Update or add badge
+                    let badge = card.querySelector('.progress-badge');
+                    if (progress > 0 && progress < 100) {
+                        if (badge) {
+                            badge.textContent = `${Math.round(progress)}%`;
+                        } else {
+                            badge = document.createElement('div');
+                            badge.className = 'progress-badge';
+                            badge.textContent = `${Math.round(progress)}%`;
+                            card.insertBefore(badge, card.firstChild);
+                        }
+                    } else if (progress === 100) {
+                        if (badge) {
+                            badge.textContent = '✓ Watched';
+                        } else {
+                            badge = document.createElement('div');
+                            badge.className = 'progress-badge';
+                            badge.textContent = '✓ Watched';
+                            card.insertBefore(badge, card.firstChild);
+                        }
+                    }
+                }
+            });
         }
 
         // Search on button click
