@@ -537,7 +537,27 @@
             }
         });
 
+        // Handle browser back/forward buttons
+        window.addEventListener('popstate', (e) => {
+            if (e.state && e.state.page === 'search') {
+                // User went back to a search
+                showingSearch = true;
+                backBtn.classList.add('visible');
+                searchInput.value = e.state.query || '';
+                if (e.state.query) {
+                    performSearchWithoutHistory(e.state.query);
+                }
+            } else {
+                // User went back to home
+                goBackWithoutHistory();
+            }
+        });
+
         function goBack() {
+            window.history.back();
+        }
+
+        function goBackWithoutHistory() {
             showingSearch = false;
             backBtn.classList.remove('visible');
             searchInput.value = '';
@@ -783,8 +803,26 @@
             }
         }
 
-        // Load popular content when page loads
-        loadPopularContent();
+        // Initialize page based on URL
+        function initializePage() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const searchQuery = urlParams.get('search');
+            
+            if (searchQuery) {
+                // If there's a search query in URL, perform search
+                showingSearch = true;
+                backBtn.classList.add('visible');
+                searchInput.value = searchQuery;
+                performSearchWithoutHistory(searchQuery);
+            } else {
+                // Otherwise load popular content
+                window.history.replaceState({ page: 'home' }, '', window.location.pathname);
+                loadPopularContent();
+            }
+        }
+
+        // Initialize when page loads
+        initializePage();
     </script>
 </body>
 </html>
