@@ -730,6 +730,7 @@
         function getProgress(id, type) {
             const key = `progress_${type}_${id}`;
             const saved = localStorage.getItem(key);
+            console.log(`Getting progress for ${key}:`, saved);
             return saved ? JSON.parse(saved) : null;
         }
 
@@ -742,6 +743,7 @@
                 timestamp: Date.now()
             };
             localStorage.setItem(key, JSON.stringify(data));
+            console.log(`Saved progress for ${key}:`, data);
         }
 
         function calculateProgress(id, type) {
