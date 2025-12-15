@@ -269,8 +269,21 @@
             font-size: 1.8em;
             color: white;
             margin-bottom: 20px;
+            margin-top: 40px;
             margin-left: 5px;
             font-weight: 600;
+        }
+
+        .section-title:first-of-type {
+            margin-top: 0;
+        }
+
+        #continueWatching {
+            margin-bottom: 50px;
+        }
+
+        #continueWatching .results-grid {
+            margin-top: 20px;
         }
 
         .search-box {
@@ -667,6 +680,68 @@
             transform: rotate(90deg);
         }
 
+        .progress-tracker {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(41, 41, 41, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            border-radius: 25px;
+            z-index: 10;
+            border: 1px solid #ffa31a;
+            color: white;
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .progress-tracker input[type="range"] {
+            width: 150px;
+            height: 4px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #808080;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        .progress-tracker input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            background: #ffa31a;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
+        .progress-tracker input[type="range"]::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            background: #ffa31a;
+            cursor: pointer;
+            border-radius: 50%;
+            border: none;
+        }
+
+        .mark-watched-btn {
+            background: #ffa31a;
+            border: none;
+            color: #292929;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .mark-watched-btn:hover {
+            transform: scale(1.05);
+        }
+
         @media (max-width: 768px) {
             .player-container {
                 width: 95%;
@@ -705,6 +780,8 @@
 
         <div id="heroBanner" class="hero-banner" style="display: none;"></div>
 
+        <div id="continueWatching"></div>
+        
         <div id="results"></div>
     </div>
 
@@ -719,6 +796,7 @@
         const resultsDiv = document.getElementById('results');
         const backBtn = document.getElementById('backBtn');
         const heroBanner = document.getElementById('heroBanner');
+        const continueWatchingDiv = document.getElementById('continueWatching');
 
         let showingSearch = false;
         let playerMessageListener = null;
@@ -860,6 +938,7 @@
             backBtn.classList.remove('visible');
             searchInput.value = '';
             heroBanner.style.display = 'block';
+            continueWatchingDiv.style.display = 'block';
             loadPopularContent();
         }
 
@@ -874,6 +953,7 @@
             showingSearch = true;
             backBtn.classList.add('visible');
             heroBanner.style.display = 'none';
+            continueWatchingDiv.style.display = 'none';
 
             // Show loading
             resultsDiv.innerHTML = '<div class="loading">Searching...</div>';
@@ -1046,6 +1126,7 @@
 
         let currentPlayerId = null;
         let currentPlayerType = null;
+        let progressUpdateInterval = null;
 
         function openPlayer(id, type) {
             currentPlayerId = id;
@@ -1053,6 +1134,10 @@
             
             // Setup message listener for player updates
             setupPlayerMessageListener(id, type);
+            
+            // Get saved progress
+            const savedProgress = calculateProgress(id, type);
+            console.log(`Opening player for ${type} ${id}, saved progress: ${savedProgress}%`);
             
             // Create modal
             const modal = document.createElement('div');
@@ -1067,6 +1152,17 @@
             
             modal.innerHTML = `
                 <div class="player-container" id="playerContainer">
+                    <div class="progress-tracker">
+                        <span id="progressPercent">${savedProgress}%</span>
+                        <input 
+                            type="range" 
+                            id="progressSlider" 
+                            min="0" 
+                            max="100" 
+                            value="${savedProgress}"
+                        >
+                        <button class="mark-watched-btn" onclick="markAsWatched()">✓ Watched</button>
+                    </div>
                     <button class="close-btn" onclick="closePlayer()">✕</button>
                     <iframe 
                         id="playerIframe"
@@ -1081,6 +1177,30 @@
             
             // Prevent body scroll
             document.body.style.overflow = 'hidden';
+            
+            // Setup progress slider
+            const slider = document.getElementById('progressSlider');
+            const progressPercent = document.getElementById('progressPercent');
+            
+            slider.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                progressPercent.textContent = `${value}%`;
+                saveProgress(currentPlayerId, currentPlayerType, value, 0, 0);
+                updateCardProgress(currentPlayerId, currentPlayerType, value);
+            });
+            
+            // Auto-increment progress every 30 seconds as a fallback
+            progressUpdateInterval = setInterval(() => {
+                const currentValue = parseInt(slider.value);
+                if (currentValue < 100) {
+                    const newValue = Math.min(currentValue + 5, 100);
+                    slider.value = newValue;
+                    progressPercent.textContent = `${newValue}%`;
+                    saveProgress(currentPlayerId, currentPlayerType, newValue, 0, 0);
+                    updateCardProgress(currentPlayerId, currentPlayerType, newValue);
+                    console.log(`Auto-updated progress to ${newValue}%`);
+                }
+            }, 30000); // Every 30 seconds
             
             // Request fullscreen after a short delay to ensure DOM is ready
             setTimeout(() => {
@@ -1109,6 +1229,16 @@
             document.addEventListener('msfullscreenchange', handleFullscreenChange);
         }
 
+        function markAsWatched() {
+            const slider = document.getElementById('progressSlider');
+            const progressPercent = document.getElementById('progressPercent');
+            slider.value = 100;
+            progressPercent.textContent = '100%';
+            saveProgress(currentPlayerId, currentPlayerType, 100, 0, 0);
+            updateCardProgress(currentPlayerId, currentPlayerType, 100);
+            console.log('Marked as watched!');
+        }
+
         function handleFullscreenChange() {
             // If user exits fullscreen, don't automatically close the player
             // They can still use the close button if they want to exit completely
@@ -1135,6 +1265,12 @@
                 document.body.style.overflow = 'auto';
             }
             
+            // Clear progress update interval
+            if (progressUpdateInterval) {
+                clearInterval(progressUpdateInterval);
+                progressUpdateInterval = null;
+            }
+            
             // Remove message listener
             if (playerMessageListener) {
                 window.removeEventListener("message", playerMessageListener);
@@ -1145,6 +1281,8 @@
             document.removeEventListener('fullscreenchange', handleFullscreenChange);
             document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
             document.removeEventListener('msfullscreenchange', handleFullscreenChange);
+            
+            console.log('Player closed, progress saved');
             
             // Refresh the display to show updated progress
             if (showingSearch) {
@@ -1165,6 +1303,9 @@
         async function loadPopularContent() {
             try {
                 resultsDiv.innerHTML = '<div class="loading">Loading popular content...</div>';
+                
+                // Load Continue Watching section first
+                await loadContinueWatching();
                 
                 // Fetch both popular movies and TV shows
                 const [moviesResponse, tvResponse] = await Promise.all([
@@ -1203,6 +1344,107 @@
             }
         }
 
+        // Load Continue Watching section
+        async function loadContinueWatching() {
+            // Get all progress from localStorage
+            const continueWatchingItems = [];
+            
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('progress_')) {
+                    const progressData = JSON.parse(localStorage.getItem(key));
+                    
+                    // Only show items with progress between 1% and 99% (not finished, not just started)
+                    if (progressData.progress > 0 && progressData.progress < 100) {
+                        const parts = key.split('_');
+                        const type = parts[1]; // 'movie' or 'tv'
+                        const id = parts[2];
+                        
+                        continueWatchingItems.push({
+                            id: parseInt(id),
+                            type: type,
+                            progress: progressData.progress,
+                            timestamp: progressData.timestamp
+                        });
+                    }
+                }
+            }
+            
+            if (continueWatchingItems.length === 0) {
+                continueWatchingDiv.innerHTML = '';
+                continueWatchingDiv.style.display = 'none';
+                return;
+            }
+            
+            // Sort by most recent
+            continueWatchingItems.sort((a, b) => b.timestamp - a.timestamp);
+            
+            // Fetch details for each item
+            const itemDetailsPromises = continueWatchingItems.slice(0, 10).map(async item => {
+                try {
+                    const endpoint = item.type === 'movie' ? 'movie' : 'tv';
+                    const response = await fetch(`${BASE_URL}/${endpoint}/${item.id}?api_key=${API_KEY}&language=en-US`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        return {
+                            ...data,
+                            media_type: item.type,
+                            saved_progress: item.progress
+                        };
+                    }
+                } catch (error) {
+                    console.error(`Error fetching ${item.type} ${item.id}:`, error);
+                }
+                return null;
+            });
+            
+            const itemDetails = (await Promise.all(itemDetailsPromises)).filter(item => item !== null);
+            
+            if (itemDetails.length === 0) {
+                continueWatchingDiv.innerHTML = '';
+                continueWatchingDiv.style.display = 'none';
+                return;
+            }
+            
+            // Display Continue Watching section
+            const itemsHTML = itemDetails.map(item => {
+                const posterPath = item.poster_path 
+                    ? `${IMG_BASE_URL}${item.poster_path}` 
+                    : 'https://via.placeholder.com/250x375/1a1a1a/ffa31a?text=No+Poster';
+                
+                const title = item.title || item.name;
+                const date = item.release_date || item.first_air_date;
+                const year = date ? date.split('-')[0] : 'N/A';
+                const rating = item.vote_average ? item.vote_average.toFixed(1) : 'N/A';
+                const mediaType = item.media_type;
+                const typeLabel = mediaType === 'movie' ? '🎬' : '📺';
+                const progress = item.saved_progress;
+
+                return `
+                    <div class="movie-card" onclick="selectItem(${item.id}, '${mediaType}')">
+                        <div class="progress-badge">${Math.round(progress)}%</div>
+                        <img src="${posterPath}" alt="${title}" class="movie-poster">
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" style="width: ${progress}%"></div>
+                        </div>
+                        <div class="movie-info">
+                            <div class="movie-title">${typeLabel} ${title}</div>
+                            <div class="movie-meta">
+                                <span class="movie-year">${year}</span>
+                                <span class="movie-rating">⭐ ${rating}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            continueWatchingDiv.innerHTML = `
+                <h2 class="section-title">Continue Watching</h2>
+                <div class="results-grid">${itemsHTML}</div>
+            `;
+            continueWatchingDiv.style.display = 'block';
+        }
+
         // Initialize page based on URL
         function initializePage() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -1214,6 +1456,7 @@
                 backBtn.classList.add('visible');
                 searchInput.value = searchQuery;
                 heroBanner.style.display = 'none';
+                continueWatchingDiv.style.display = 'none';
                 performSearchWithoutHistory(searchQuery);
             } else {
                 // Otherwise load popular content
