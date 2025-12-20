@@ -686,60 +686,54 @@
             left: 15px;
             background: rgba(41, 41, 41, 0.95);
             backdrop-filter: blur(10px);
-            padding: 10px 20px;
+            padding: 12px 20px;
             border-radius: 25px;
             z-index: 10;
             border: 1px solid #ffa31a;
-            color: white;
-            font-size: 0.9em;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
 
-        .progress-tracker input[type="range"] {
-            width: 150px;
-            height: 4px;
-            -webkit-appearance: none;
-            appearance: none;
-            background: #808080;
-            border-radius: 5px;
-            outline: none;
-        }
-
-        .progress-tracker input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 14px;
-            height: 14px;
-            background: #ffa31a;
+        .progress-btn {
+            background: rgba(255, 163, 26, 0.2);
+            border: 1px solid #ffa31a;
+            color: #ffa31a;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
             cursor: pointer;
-            border-radius: 50%;
+            transition: all 0.3s;
+            font-family: 'Gotham', sans-serif;
         }
 
-        .progress-tracker input[type="range"]::-moz-range-thumb {
-            width: 14px;
-            height: 14px;
+        .progress-btn:hover {
+            background: rgba(255, 163, 26, 0.4);
+            transform: scale(1.05);
+        }
+
+        .progress-btn.active {
             background: #ffa31a;
-            cursor: pointer;
-            border-radius: 50%;
-            border: none;
+            color: #292929;
         }
 
         .mark-watched-btn {
             background: #ffa31a;
             border: none;
             color: #292929;
-            padding: 5px 12px;
-            border-radius: 15px;
-            font-size: 0.8em;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9em;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
+            font-family: 'Gotham', sans-serif;
         }
 
         .mark-watched-btn:hover {
             transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(255, 163, 26, 0.4);
         }
 
         @media (max-width: 768px) {
@@ -1126,7 +1120,6 @@
 
         let currentPlayerId = null;
         let currentPlayerType = null;
-        let progressUpdateInterval = null;
 
         function openPlayer(id, type) {
             currentPlayerId = id;
@@ -1137,6 +1130,9 @@
             
             // Get saved progress
             const savedProgress = calculateProgress(id, type);
+            const isWatching = savedProgress > 0 && savedProgress < 100;
+            const isFinished = savedProgress === 100;
+            
             console.log(`Opening player for ${type} ${id}, saved progress: ${savedProgress}%`);
             
             // Create modal
@@ -1153,15 +1149,12 @@
             modal.innerHTML = `
                 <div class="player-container" id="playerContainer">
                     <div class="progress-tracker">
-                        <span id="progressPercent">${savedProgress}%</span>
-                        <input 
-                            type="range" 
-                            id="progressSlider" 
-                            min="0" 
-                            max="100" 
-                            value="${savedProgress}"
-                        >
-                        <button class="mark-watched-btn" onclick="markAsWatched()">✓ Watched</button>
+                        <button class="progress-btn ${isWatching ? 'active' : ''}" id="notFinishedBtn" onclick="markAsNotFinished()">
+                            Not Finished
+                        </button>
+                        <button class="mark-watched-btn ${isFinished ? 'active' : ''}" id="finishedBtn" onclick="markAsWatched()">
+                            Finished
+                        </button>
                     </div>
                     <button class="close-btn" onclick="closePlayer()">✕</button>
                     <iframe 
@@ -1177,30 +1170,6 @@
             
             // Prevent body scroll
             document.body.style.overflow = 'hidden';
-            
-            // Setup progress slider
-            const slider = document.getElementById('progressSlider');
-            const progressPercent = document.getElementById('progressPercent');
-            
-            slider.addEventListener('input', (e) => {
-                const value = parseInt(e.target.value);
-                progressPercent.textContent = `${value}%`;
-                saveProgress(currentPlayerId, currentPlayerType, value, 0, 0);
-                updateCardProgress(currentPlayerId, currentPlayerType, value);
-            });
-            
-            // Auto-increment progress every 30 seconds as a fallback
-            progressUpdateInterval = setInterval(() => {
-                const currentValue = parseInt(slider.value);
-                if (currentValue < 100) {
-                    const newValue = Math.min(currentValue + 5, 100);
-                    slider.value = newValue;
-                    progressPercent.textContent = `${newValue}%`;
-                    saveProgress(currentPlayerId, currentPlayerType, newValue, 0, 0);
-                    updateCardProgress(currentPlayerId, currentPlayerType, newValue);
-                    console.log(`Auto-updated progress to ${newValue}%`);
-                }
-            }, 30000); // Every 30 seconds
             
             // Request fullscreen after a short delay to ensure DOM is ready
             setTimeout(() => {
@@ -1229,14 +1198,30 @@
             document.addEventListener('msfullscreenchange', handleFullscreenChange);
         }
 
+        function markAsNotFinished() {
+            const notFinishedBtn = document.getElementById('notFinishedBtn');
+            const finishedBtn = document.getElementById('finishedBtn');
+            
+            notFinishedBtn.classList.add('active');
+            finishedBtn.classList.remove('active');
+            
+            // Save as 50% progress (in progress)
+            saveProgress(currentPlayerId, currentPlayerType, 50, 0, 0);
+            updateCardProgress(currentPlayerId, currentPlayerType, 50);
+            console.log('Marked as not finished (50% progress)');
+        }
+
         function markAsWatched() {
-            const slider = document.getElementById('progressSlider');
-            const progressPercent = document.getElementById('progressPercent');
-            slider.value = 100;
-            progressPercent.textContent = '100%';
+            const notFinishedBtn = document.getElementById('notFinishedBtn');
+            const finishedBtn = document.getElementById('finishedBtn');
+            
+            finishedBtn.classList.add('active');
+            notFinishedBtn.classList.remove('active');
+            
+            // Save as 100% progress (finished)
             saveProgress(currentPlayerId, currentPlayerType, 100, 0, 0);
             updateCardProgress(currentPlayerId, currentPlayerType, 100);
-            console.log('Marked as watched!');
+            console.log('Marked as finished (100% progress)');
         }
 
         function handleFullscreenChange() {
@@ -1263,12 +1248,6 @@
             if (modal) {
                 modal.remove();
                 document.body.style.overflow = 'auto';
-            }
-            
-            // Clear progress update interval
-            if (progressUpdateInterval) {
-                clearInterval(progressUpdateInterval);
-                progressUpdateInterval = null;
             }
             
             // Remove message listener
