@@ -382,6 +382,34 @@
             z-index: 5;
         }
 
+        .card-remove-btn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(220, 53, 69, 0.95);
+            border: 1px solid rgba(220, 53, 69, 0.5);
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1.1em;
+            z-index: 5;
+        }
+
+        .card-remove-btn:hover {
+            background: rgba(220, 53, 69, 1);
+            transform: scale(1.1);
+        }
+
+        .movie-card:hover .card-remove-btn {
+            display: flex;
+        }
+
         .card-action-btn {
             background: rgba(41, 41, 41, 0.95);
             border: 1px solid #ffa31a;
@@ -1059,7 +1087,7 @@
             }
         }
 
-        function createMovieCard(item) {
+        function createMovieCard(item, section = 'default') {
             const posterPath = item.poster_path 
                 ? `${IMG_BASE_URL}${item.poster_path}` 
                 : 'https://via.placeholder.com/250x375/1a1a1a/ffa31a?text=No+Poster';
@@ -1083,8 +1111,18 @@
                 `<div class="progress-badge">${Math.round(progress)}%</div>` : 
                 progress === 100 ? `<div class="progress-badge">✓ Watched</div>` : '';
 
+            // Show remove button for continue watching and watchlist sections
+            const removeBtn = (section === 'continueWatching' || section === 'watchlist') ? `
+                <button class="card-remove-btn" 
+                        onclick="event.stopPropagation(); removeFromSection(${item.id}, '${mediaType}', '${section}')" 
+                        title="Remove">
+                    ✕
+                </button>
+            ` : '';
+
             return `
                 <div class="movie-card" onclick="showDetail(${item.id}, '${mediaType}')">
+                    ${removeBtn}
                     ${progressBadge}
                     <div class="card-actions">
                         <button class="card-action-btn ${bookmarked ? 'bookmarked' : ''}" 
@@ -1137,6 +1175,35 @@
                     }
                 }
             });
+        }
+
+        function removeFromSection(id, type, section) {
+            if (section === 'continueWatching') {
+                // Remove from progress
+                const key = `${type}_${id}`;
+                delete progressData[key];
+                saveProgressToStorage();
+                loadContinueWatching();
+            } else if (section === 'watchlist') {
+                // Remove from watchlist
+                const index = watchlistData.findIndex(w => w.id === id && w.type === type);
+                if (index > -1) {
+                    watchlistData.splice(index, 1);
+                    saveWatchlistToStorage();
+                    loadWatchlist();
+                    
+                    // Update bookmark buttons on all cards
+                    document.querySelectorAll('.movie-card').forEach(card => {
+                        if (card.onclick && card.onclick.toString().includes(`${id}`) && card.onclick.toString().includes(`'${type}'`)) {
+                            const bookmarkBtn = card.querySelector('.card-action-btn');
+                            if (bookmarkBtn && bookmarkBtn.onclick.toString().includes('toggleBookmark')) {
+                                bookmarkBtn.innerHTML = '☆';
+                                bookmarkBtn.className = 'card-action-btn';
+                            }
+                        }
+                    });
+                }
+            }
         }
 
         async function playTrailer(id, type) {
@@ -1555,7 +1622,7 @@
             const itemsHTML = itemDetails.map(item => {
                 item.progress = item.saved_progress;
                 delete item.saved_progress;
-                return createMovieCard(item);
+                return createMovieCard(item, 'continueWatching');
             }).join('');
             
             continueWatchingDiv.innerHTML = `
@@ -1580,7 +1647,7 @@
             const itemsHTML = sortedWatchlist.map(item => {
                 item.id = item.id;
                 item.media_type = item.type;
-                return createMovieCard(item);
+                return createMovieCard(item, 'watchlist');
             }).join('');
             
             watchlistDiv.innerHTML = `
