@@ -733,6 +733,86 @@
             max-height: none;
         }
 
+        /* Genre Browser Styles */
+        .genre-tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding: 10px 0;
+            scroll-behavior: smooth;
+        }
+
+        .genre-tabs::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .genre-tabs::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .genre-tabs::-webkit-scrollbar-thumb {
+            background: #ffa31a;
+            border-radius: 10px;
+        }
+
+        .genre-tab {
+            background: rgba(255, 163, 26, 0.15);
+            border: 1px solid rgba(255, 163, 26, 0.3);
+            color: #ffa31a;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Gotham', sans-serif;
+            font-weight: 500;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .genre-tab:hover {
+            background: rgba(255, 163, 26, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .genre-tab.active {
+            background: #ffa31a;
+            color: #292929;
+            border-color: #ffa31a;
+        }
+
+        .media-type-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            justify-content: center;
+        }
+
+        .media-type-btn {
+            background: rgba(255, 163, 26, 0.15);
+            border: 1px solid rgba(255, 163, 26, 0.3);
+            color: #ffa31a;
+            padding: 10px 30px;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Gotham', sans-serif;
+            font-weight: 600;
+        }
+
+        .media-type-btn:hover {
+            background: rgba(255, 163, 26, 0.3);
+        }
+
+        .media-type-btn.active {
+            background: #ffa31a;
+            color: #292929;
+            border-color: #ffa31a;
+        }
+
         .episode-card {
             background: rgba(26, 26, 26, 0.6);
             border-radius: 10px;
@@ -916,6 +996,7 @@
         <div id="watchlist"></div>
         <div id="results"></div>
         <div id="randomPicks"></div>
+        <div id="genreBrowser"></div>
     </div>
 
     <script>
@@ -931,6 +1012,7 @@
         const continueWatchingDiv = document.getElementById('continueWatching');
         const watchlistDiv = document.getElementById('watchlist');
         const randomPicksDiv = document.getElementById('randomPicks');
+        const genreBrowserDiv = document.getElementById('genreBrowser');
 
         let showingSearch = false;
         let heroSlides = [];
@@ -938,6 +1020,51 @@
         let heroInterval = null;
         let progressData = {};
         let watchlistData = [];
+        
+        // Genre data
+        const movieGenres = [
+            { id: 28, name: 'Action' },
+            { id: 12, name: 'Adventure' },
+            { id: 16, name: 'Animation' },
+            { id: 35, name: 'Comedy' },
+            { id: 80, name: 'Crime' },
+            { id: 99, name: 'Documentary' },
+            { id: 18, name: 'Drama' },
+            { id: 10751, name: 'Family' },
+            { id: 14, name: 'Fantasy' },
+            { id: 36, name: 'History' },
+            { id: 27, name: 'Horror' },
+            { id: 10402, name: 'Music' },
+            { id: 9648, name: 'Mystery' },
+            { id: 10749, name: 'Romance' },
+            { id: 878, name: 'Sci-Fi' },
+            { id: 10770, name: 'TV Movie' },
+            { id: 53, name: 'Thriller' },
+            { id: 10752, name: 'War' },
+            { id: 37, name: 'Western' }
+        ];
+        
+        const tvGenres = [
+            { id: 10759, name: 'Action & Adventure' },
+            { id: 16, name: 'Animation' },
+            { id: 35, name: 'Comedy' },
+            { id: 80, name: 'Crime' },
+            { id: 99, name: 'Documentary' },
+            { id: 18, name: 'Drama' },
+            { id: 10751, name: 'Family' },
+            { id: 10762, name: 'Kids' },
+            { id: 9648, name: 'Mystery' },
+            { id: 10763, name: 'News' },
+            { id: 10764, name: 'Reality' },
+            { id: 10765, name: 'Sci-Fi & Fantasy' },
+            { id: 10766, name: 'Soap' },
+            { id: 10767, name: 'Talk' },
+            { id: 10768, name: 'War & Politics' },
+            { id: 37, name: 'Western' }
+        ];
+        
+        let currentGenreMediaType = 'movie';
+        let currentGenreId = 28; // Default to Action
 
         function loadProgressFromStorage() {
             try {
@@ -1036,6 +1163,7 @@
             heroBanner.style.display = 'block';
             continueWatchingDiv.style.display = 'block';
             watchlistDiv.style.display = 'block';
+            genreBrowserDiv.style.display = 'block';
             randomPicksDiv.style.display = 'block';
             loadPopularContent();
         }
@@ -1052,6 +1180,7 @@
             heroBanner.style.display = 'none';
             continueWatchingDiv.style.display = 'none';
             watchlistDiv.style.display = 'none';
+            genreBrowserDiv.style.display = 'none';
             randomPicksDiv.style.display = 'none';
             resultsDiv.innerHTML = '<div class="loading">Searching...</div>';
 
@@ -1563,6 +1692,7 @@
                 displayResults(gridContent);
                 
                 await loadRandomPicks();
+                await loadGenreBrowser();
             } catch (error) {
                 resultsDiv.innerHTML = `<div class="error">Error loading content: ${error.message}</div>`;
             }
@@ -1657,6 +1787,85 @@
             watchlistDiv.style.display = 'block';
         }
 
+        async function loadGenreBrowser() {
+            const genres = currentGenreMediaType === 'movie' ? movieGenres : tvGenres;
+            
+            const mediaTypeHtml = `
+                <div class="media-type-selector">
+                    <button class="media-type-btn ${currentGenreMediaType === 'movie' ? 'active' : ''}" 
+                            onclick="switchGenreMediaType('movie')">
+                        🎬 Movies
+                    </button>
+                    <button class="media-type-btn ${currentGenreMediaType === 'tv' ? 'active' : ''}" 
+                            onclick="switchGenreMediaType('tv')">
+                        📺 TV Shows
+                    </button>
+                </div>
+            `;
+            
+            const genreTabsHtml = genres.map(genre => `
+                <button class="genre-tab ${genre.id === currentGenreId ? 'active' : ''}" 
+                        onclick="selectGenre(${genre.id})">
+                    ${genre.name}
+                </button>
+            `).join('');
+            
+            genreBrowserDiv.innerHTML = `
+                <h2 class="section-title">Browse by Genre</h2>
+                ${mediaTypeHtml}
+                <div class="genre-tabs">${genreTabsHtml}</div>
+                <div id="genreResults"></div>
+            `;
+            
+            genreBrowserDiv.style.display = 'block';
+            await loadGenreContent();
+        }
+
+        async function switchGenreMediaType(type) {
+            currentGenreMediaType = type;
+            const genres = type === 'movie' ? movieGenres : tvGenres;
+            currentGenreId = genres[0].id;
+            await loadGenreBrowser();
+        }
+
+        async function selectGenre(genreId) {
+            currentGenreId = genreId;
+            
+            document.querySelectorAll('.genre-tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.onclick.toString().includes(`${genreId}`)) {
+                    tab.classList.add('active');
+                }
+            });
+            
+            await loadGenreContent();
+        }
+
+        async function loadGenreContent() {
+            const genreResultsDiv = document.getElementById('genreResults');
+            if (!genreResultsDiv) return;
+            
+            genreResultsDiv.innerHTML = '<div class="loading">Loading...</div>';
+            
+            try {
+                const endpoint = currentGenreMediaType === 'movie' ? 'movie' : 'tv';
+                const response = await fetch(
+                    `${BASE_URL}/discover/${endpoint}?api_key=${API_KEY}&language=en-US&sort_by=popularity.desc&with_genres=${currentGenreId}&page=1`
+                );
+                
+                const data = await response.json();
+                const items = data.results.map(item => ({
+                    ...item,
+                    media_type: currentGenreMediaType
+                }));
+                
+                const itemsHTML = items.slice(0, 20).map(item => createMovieCard(item)).join('');
+                genreResultsDiv.innerHTML = `<div class="results-grid">${itemsHTML}</div>`;
+            } catch (error) {
+                genreResultsDiv.innerHTML = '<div class="error">Error loading genre content.</div>';
+            }
+        }
+
         async function loadRandomPicks() {
             const page = Math.floor(Math.random() * 5) + 1;
             
@@ -1705,6 +1914,7 @@
                 heroBanner.style.display = 'none';
                 continueWatchingDiv.style.display = 'none';
                 watchlistDiv.style.display = 'none';
+                genreBrowserDiv.style.display = 'none';
                 randomPicksDiv.style.display = 'none';
                 performSearchWithoutHistory(searchQuery);
             } else {
